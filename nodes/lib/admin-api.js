@@ -37,13 +37,14 @@ function registerAdminApi(RED, deps) {
     extractUtilitySymbols,
   } = deps;
 
-  const monacoPath = path.dirname(
-    require.resolve("monaco-editor/package.json"),
-  );
+  // Since 0.56 monaco-editor has an `exports` map that hides package.json;
+  // its CommonJS entry is min/vs/index.js, so the AMD build (loader.js and
+  // editor/editor.main.js) sits in the same directory.
+  const monacoVsPath = path.dirname(require.resolve("monaco-editor"));
   RED.httpAdmin.use(
     "/portal-react/vs",
     permRead,
-    express.static(path.join(monacoPath, "min", "vs")),
+    express.static(monacoVsPath),
   );
 
   // Editor-side workspace plugin (tree + full-screen Monaco overlay). Served

@@ -30,12 +30,12 @@
     "node": ">=18.5"
   },
   "dependencies": {
-    "esbuild": "^0.28.1",
-    "monaco-editor": "^0.55.1",
-    "prettier": "^3.9.5",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "tailwindcss": "^4.3.2"
+    "esbuild": "^0.28.2",
+    "monaco-editor": "^0.56.0",
+    "prettier": "^3.9.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3"
   },
   "peerDependencies": {
     "ws": "^8.21.0"
@@ -48,14 +48,14 @@
   "devDependencies": {
     "jsdoc": "^4.0.5",
     "jsdoc-plugin-typescript": "^3.2.1",
-    "node-red": "5.0.1",
-    "node-red-node-test-helper": "^0.3.4",
+    "node-red": "5.0.7",
+    "node-red-node-test-helper": "^0.3.6",
     "supertest": "^7.2.2",
-    "vitest": "^4.1.10",
-    "ws": "^8.21.0"
+    "vitest": "^5.0.1",
+    "ws": "^8.21.3"
   },
   "overrides": {
-    "dompurify": "3.4.11"
+    "dompurify": "3.4.15"
   },
   "scripts": {
     "start": "node-red",
