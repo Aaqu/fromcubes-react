@@ -14,7 +14,6 @@ const path = require("path");
  * @param {Function} deps.permWrite
  * @param {Function} deps.csrfGuard
  * @param {Function} deps.rateLimit
- * @param {string} deps.jsonBodyLimit
  * @param {string} deps.userDir
  * @param {Object<string, Object>} deps.pageState
  * @param {Object<string, Object>} deps.registry
@@ -29,7 +28,6 @@ function registerAdminApi(RED, deps) {
     permWrite,
     csrfGuard,
     rateLimit,
-    jsonBodyLimit,
     userDir,
     pageState,
     registry,
@@ -114,7 +112,6 @@ function registerAdminApi(RED, deps) {
   registerAssets(RED, express, path.join(userDir, "fromcubes", "public"), {
     csrfGuard,
     rateLimit,
-    jsonLimit: jsonBodyLimit,
   });
 
   RED.httpAdmin.get("/portal-react/registry", permRead, (_req, res) => {
@@ -126,7 +123,6 @@ function registerAdminApi(RED, deps) {
     permWrite,
     csrfGuard,
     rateLimit,
-    express.json({ limit: jsonBodyLimit }),
     (_req, res) => {
       res.status(410).json({
         error: "registry writes are deprecated; use fc-portal-component nodes",
@@ -163,7 +159,6 @@ function registerAdminApi(RED, deps) {
     permWrite,
     csrfGuard,
     rateLimit,
-    express.json({ limit: jsonBodyLimit }),
     (_req, res) => {
       res.status(410).json({
         error: "utility writes are deprecated; use fc-portal-utility nodes",

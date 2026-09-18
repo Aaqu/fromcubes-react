@@ -239,12 +239,6 @@ module.exports = function (RED) {
     RED.settings.portalReactRateBucketPruneIv.unref?.();
   }
 
-  // ── Standard JSON parser with 1 MB limit ──────────────────────
-  // Applied per-route on POSTs that read req.body. 1 MB easily fits even
-  // large component files, and protects the registry endpoints from being
-  // used as a denial-of-service vector.
-  const JSON_BODY_LIMIT = "1mb";
-
   // ── Status text helper ───────────────────────────────────────
   // Node-RED appearance docs recommend status text "around 20 characters".
   // Truncate with an ellipsis so long error fragments, component names, or
@@ -1710,7 +1704,6 @@ module.exports = function (RED) {
     permWrite: PERM_WRITE,
     csrfGuard,
     rateLimit,
-    jsonBodyLimit: JSON_BODY_LIMIT,
     userDir,
     pageState,
     registry,

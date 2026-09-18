@@ -25,7 +25,6 @@ beforeEach(() => {
     permWrite: (_req, _res, next) => next(),
     csrfGuard: (_req, _res, next) => next(),
     rateLimit: (_req, _res, next) => next(),
-    jsonBodyLimit: "1mb",
     userDir: tmpDir,
     pageState: {},
     registry: {},
