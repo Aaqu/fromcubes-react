@@ -46,6 +46,32 @@ function registerAdminApi(RED, deps) {
     express.static(path.join(monacoPath, "min", "vs")),
   );
 
+  // Editor-side workspace plugin (tree + full-screen Monaco overlay). Served
+  // as static files instead of being inlined into portal-react.html so the
+  // node's editor template stays readable.
+  RED.httpAdmin.use(
+    "/portal-react/editor",
+    permRead,
+    express.static(path.join(__dirname, "..", "editor")),
+  );
+
+  // The node icon doubles as the editor's status-bar mark. Serving the icons
+  // directory here keeps one copy on disk and spares the client from having to
+  // know the package name that Node-RED's own /icons route is keyed by.
+  RED.httpAdmin.use(
+    "/portal-react/icons",
+    permRead,
+    express.static(path.join(__dirname, "..", "icons")),
+  );
+
+  // Prettier's browser builds, straight from node_modules — same arrangement
+  // as Monaco at /portal-react/vs. Nothing is fetched until someone formats.
+  RED.httpAdmin.use(
+    "/portal-react/prettier",
+    permRead,
+    express.static(path.dirname(require.resolve("prettier/package.json"))),
+  );
+
   const { generateCandidates } = require("../tw-candidates");
   let twClassesCache = null;
   RED.httpAdmin.get("/portal-react/tw-classes", permRead, (_req, res) => {

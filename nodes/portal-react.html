@@ -1,4 +1,13 @@
 <!-- ============================================================
+     Portal Code Workspace — sidebar tab + full-screen editor overlay.
+     Served from nodes/editor/ via the /portal-react/editor admin route.
+     ============================================================ -->
+<link rel="stylesheet" href="portal-react/editor/workspace.css" />
+<script type="text/javascript" src="portal-react/editor/file-tree.js"></script>
+<script type="text/javascript" src="portal-react/editor/workspace.js"></script>
+<script type="text/javascript" src="portal-react/editor/format.js"></script>
+
+<!-- ============================================================
      Shared: Monaco loader (used by both node editors)
      ============================================================ -->
 <script type="text/javascript">
@@ -277,6 +286,15 @@
           const suggestions = [];
           const seen = new Set();
 
+          // Monaco filters a suggestion against the text its range replaces.
+          // After "<" that text is "<Rac", so a plain "Rack" label never
+          // matches and the item is dropped before it is ever shown — the
+          // list appears on "<" and empties as soon as you type a letter.
+          // filterText restates the label the way the range sees it.
+          const filterFor = function (label) {
+            return afterBracket ? "<" + label : label;
+          };
+
           // HTML tags
           for (let i = 0; i < HTML_TAGS.length; i++) {
             const tag = HTML_TAGS[i];
@@ -290,6 +308,7 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(tag),
                 detail: "<" + tag + " />",
                 sortText: "0" + tag,
               });
@@ -301,6 +320,7 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(tag),
                 detail: "<" + tag + ">…</" + tag + ">",
                 sortText: "0" + tag + "a",
               });
@@ -311,6 +331,7 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(tag),
                 detail: "<" + tag + " />",
                 sortText: "0" + tag + "b",
               });
@@ -349,6 +370,7 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(name),
                 detail: "<" + name + ">…</" + name + ">",
                 sortText: "0" + name + "a",
               });
@@ -359,11 +381,16 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(name),
                 detail: "<" + name + " />",
                 sortText: "0" + name + "b",
               });
             }
-            // Any PascalCase word not in registry — offer generic JSX wrap
+            // Any PascalCase word not in registry — offer generic JSX wrap.
+            // While a name is half-typed this can outrank the real component:
+            // Monaco scores an exact filter match above a prefix one, and
+            // sortText does not override that. It disappears as soon as the
+            // name is complete, because then `seen` already holds it.
             if (compTyped && !seen.has(compTyped)) {
               suggestions.push({
                 label: compTyped,
@@ -372,6 +399,7 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(compTyped),
                 detail: "<" + compTyped + ">…</" + compTyped + ">",
                 sortText: "0" + compTyped + "a",
               });
@@ -382,6 +410,7 @@
                 insertTextRules:
                   monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 range: range,
+                filterText: filterFor(compTyped),
                 detail: "<" + compTyped + " />",
                 sortText: "0" + compTyped + "b",
               });
@@ -810,6 +839,9 @@
         });
       }
       refreshComponentNames();
+      // Exposed for the workspace overlay, which reopens files without going
+      // through any node's oneditprepare.
+      window.__fcRefreshComponentNames = refreshComponentNames;
 
       // Fetch utility nodes + their parsed top-level symbols.
       // Window cache shape: { byNode: { utilName: [symbol, ...] }, allSymbols: [..] }
@@ -1017,8 +1049,11 @@
     <label for="node-input-compName"><i class="fa fa-cube"></i> JSX Tag</label>
     <input type="text" id="node-input-compName" placeholder="MyComponent" />
   </div>
-  <div class="form-row" style="margin-bottom:4px;">
-    <label><i class="fa fa-code"></i> JSX Code</label>
+  <div class="form-row" style="margin-bottom:4px;display:flex;align-items:center;">
+    <label style="flex:1"><i class="fa fa-code"></i> JSX Code</label>
+    <button type="button" class="red-ui-button red-ui-button-small" id="fcc-btn-react-editor" title="Open this component in the full-screen React Editor">
+      <i class="fa fa-expand"></i> React Editor
+    </button>
   </div>
   <div class="form-row node-text-editor-row">
     <div
@@ -1090,7 +1125,7 @@
       },
       inputs: 0,
       outputs: 0,
-      icon: "font-awesome/fa-cube",
+      icon: "fromcubes-component.svg",
       paletteLabel: "React Component",
       inputLabels: [],
       outputLabels: [],
@@ -1117,6 +1152,16 @@
         const code =
           typeof node.compCode === "string" ? node.compCode : COMP_STARTER;
         console.log("[FC-Monaco] COMP oneditprepare, node.id=" + node.id);
+
+        // Hand off to the full-screen React Editor: the dialog saves and
+        // closes itself first (its oneditsave owns the same field).
+        $("#fcc-btn-react-editor").on("click", function () {
+          if (!window.__fcPortalWorkspace) {
+            RED.notify("React Editor is not available", "warning");
+            return;
+          }
+          window.__fcPortalWorkspace.openNodeFile(node.id, "compCode");
+        });
 
         if (!window.__fcTwClasses) {
           console.log("[FC-Monaco] loading tw-classes...");
@@ -1298,7 +1343,12 @@
     <input type="text" id="node-input-utilName" placeholder="mathHelpers" />
   </div>
   <div class="form-row" style="margin-bottom:4px;">
-    <label><i class="fa fa-code"></i> Code</label>
+    <div style="display:flex;align-items:center;">
+      <label style="flex:1"><i class="fa fa-code"></i> Code</label>
+      <button type="button" class="red-ui-button red-ui-button-small" id="fcu-btn-react-editor" title="Open this utility in the full-screen React Editor">
+        <i class="fa fa-expand"></i> React Editor
+      </button>
+    </div>
     <div style="font-size:11px;opacity:.5;margin-top:2px;">
       Top-level helpers, custom hooks and constants. Available globally to portals
       that reference any of the symbols declared here.
@@ -1393,7 +1443,7 @@
       },
       inputs: 0,
       outputs: 0,
-      icon: "font-awesome/fa-wrench",
+      icon: "fromcubes-utility.svg",
       paletteLabel: "React Utility",
       inputLabels: [],
       outputLabels: [],
@@ -1416,6 +1466,16 @@
         const code =
           typeof node.utilCode === "string" ? node.utilCode : UTIL_STARTER;
         console.log("[FC-Monaco] UTIL oneditprepare, node.id=" + node.id);
+
+        // Hand off to the full-screen React Editor: the dialog saves and
+        // closes itself first (its oneditsave owns the same field).
+        $("#fcu-btn-react-editor").on("click", function () {
+          if (!window.__fcPortalWorkspace) {
+            RED.notify("React Editor is not available", "warning");
+            return;
+          }
+          window.__fcPortalWorkspace.openNodeFile(node.id, "utilCode");
+        });
 
         if (!window.__fcTwClasses) {
           $.getJSON("portal-react/tw-classes", function (classes) {
@@ -1577,6 +1637,9 @@ function useDebounce(value, ms = 300) {
         </button>
         <button type="button" class="red-ui-button" id="fc-btn-utilities">
           <i class="fa fa-wrench"></i> Utilities
+        </button>
+        <button type="button" class="red-ui-button" id="fc-btn-react-editor" title="Open this file in the full-screen React Editor">
+          <i class="fa fa-expand"></i> React Editor
         </button>
         <span style="flex:1"></span>
         <button type="button" class="red-ui-button" id="fc-btn-preview">
@@ -1774,7 +1837,7 @@ function useDebounce(value, ms = 300) {
       },
       inputs: 1,
       outputs: 1,
-      icon: "font-awesome/fa-desktop",
+      icon: "fromcubes-react.svg",
       paletteLabel: "React Portal",
       // Source AND sink — we keep the default left-aligned input even though
       // Node-RED appearance docs suggest align: 'right' for nodes that sit at
@@ -1808,6 +1871,19 @@ function useDebounce(value, ms = 300) {
           typeof node.componentCode === "string" ? node.componentCode : STARTER;
         const headCode = node.customHead || "";
         console.log("[FC-Monaco] PORTAL oneditprepare, node.id=" + node.id);
+
+        // Hand off to the full-screen React Editor. Which file opens follows
+        // the tab you were on: JSX → App.jsx, Head HTML → head.html.
+        $("#fc-btn-react-editor").on("click", function () {
+          if (!window.__fcPortalWorkspace) {
+            RED.notify("React Editor is not available", "warning");
+            return;
+          }
+          const field = $("#fc-tab-head").is(":visible")
+            ? "customHead"
+            : "componentCode";
+          window.__fcPortalWorkspace.openNodeFile(node.id, field);
+        });
 
         if (!window.__fcTwClasses) {
           console.log("[FC-Monaco] loading tw-classes...");

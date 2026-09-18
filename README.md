@@ -7,9 +7,9 @@
 [![license](https://img.shields.io/npm/l/%40aaqu%2Ffromcubes-portal-react.svg)](./LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join%20chat-5865F2?logo=discord&logoColor=white)](https://discord.gg/KYzsfKkYxX)
 
-**📖 Documentation — step-by-step guide with screenshots:** [aaqu.github.io/fromcubes-portal-react](https://aaqu.github.io/fromcubes-portal-react/) — install → import → edit JSX → live dashboard, on one example.
+**📖 Documentation — step-by-step guide with screenshots:** [aaqu.github.io/fromcubes-react](https://aaqu.github.io/fromcubes-react/) — install → import → edit JSX → live dashboard, on one example.
 
-[![Documentation walkthrough](https://aaqu.github.io/fromcubes-portal-react/img/docs-scroll.gif)](https://aaqu.github.io/fromcubes-portal-react/)
+[![Documentation walkthrough](https://aaqu.github.io/fromcubes-react/img/docs-scroll.gif)](https://aaqu.github.io/fromcubes-react/)
 
 > **⚠️ Alpha Module** — This project is in early development. Expect breaking changes. Test on a clean Node-RED instance.
 

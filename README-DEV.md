@@ -682,7 +682,7 @@ To run the plugin against a real Node-RED:
 
 ```bash
 cd ~/.node-red
-npm install /path/to/fromcubes-portal-react
+npm install /path/to/fromcubes-react
 npm start
 ```
 
