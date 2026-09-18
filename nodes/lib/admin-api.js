@@ -14,7 +14,6 @@ const path = require("path");
  * @param {Function} deps.permWrite
  * @param {Function} deps.csrfGuard
  * @param {Function} deps.rateLimit
- * @param {string} deps.jsonBodyLimit
  * @param {string} deps.userDir
  * @param {Object<string, Object>} deps.pageState
  * @param {Object<string, Object>} deps.registry
@@ -29,7 +28,6 @@ function registerAdminApi(RED, deps) {
     permWrite,
     csrfGuard,
     rateLimit,
-    jsonBodyLimit,
     userDir,
     pageState,
     registry,
@@ -37,13 +35,40 @@ function registerAdminApi(RED, deps) {
     extractUtilitySymbols,
   } = deps;
 
-  const monacoPath = path.dirname(
-    require.resolve("monaco-editor/package.json"),
-  );
+  // Since 0.56 monaco-editor has an `exports` map that hides package.json;
+  // its CommonJS entry is min/vs/index.js, so the AMD build (loader.js and
+  // editor/editor.main.js) sits in the same directory.
+  const monacoVsPath = path.dirname(require.resolve("monaco-editor"));
   RED.httpAdmin.use(
     "/portal-react/vs",
     permRead,
-    express.static(path.join(monacoPath, "min", "vs")),
+    express.static(monacoVsPath),
+  );
+
+  // Editor-side workspace plugin (tree + full-screen Monaco overlay). Served
+  // as static files instead of being inlined into portal-react.html so the
+  // node's editor template stays readable.
+  RED.httpAdmin.use(
+    "/portal-react/editor",
+    permRead,
+    express.static(path.join(__dirname, "..", "editor")),
+  );
+
+  // The node icon doubles as the editor's status-bar mark. Serving the icons
+  // directory here keeps one copy on disk and spares the client from having to
+  // know the package name that Node-RED's own /icons route is keyed by.
+  RED.httpAdmin.use(
+    "/portal-react/icons",
+    permRead,
+    express.static(path.join(__dirname, "..", "icons")),
+  );
+
+  // Prettier's browser builds, straight from node_modules — same arrangement
+  // as Monaco at /portal-react/vs. Nothing is fetched until someone formats.
+  RED.httpAdmin.use(
+    "/portal-react/prettier",
+    permRead,
+    express.static(path.dirname(require.resolve("prettier/package.json"))),
   );
 
   const { generateCandidates } = require("../tw-candidates");
@@ -87,7 +112,6 @@ function registerAdminApi(RED, deps) {
   registerAssets(RED, express, path.join(userDir, "fromcubes", "public"), {
     csrfGuard,
     rateLimit,
-    jsonLimit: jsonBodyLimit,
   });
 
   RED.httpAdmin.get("/portal-react/registry", permRead, (_req, res) => {
@@ -99,7 +123,6 @@ function registerAdminApi(RED, deps) {
     permWrite,
     csrfGuard,
     rateLimit,
-    express.json({ limit: jsonBodyLimit }),
     (_req, res) => {
       res.status(410).json({
         error: "registry writes are deprecated; use fc-portal-component nodes",
@@ -136,7 +159,6 @@ function registerAdminApi(RED, deps) {
     permWrite,
     csrfGuard,
     rateLimit,
-    express.json({ limit: jsonBodyLimit }),
     (_req, res) => {
       res.status(410).json({
         error: "utility writes are deprecated; use fc-portal-utility nodes",

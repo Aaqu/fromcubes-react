@@ -7,9 +7,9 @@
 [![license](https://img.shields.io/npm/l/%40aaqu%2Ffromcubes-portal-react.svg)](./LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join%20chat-5865F2?logo=discord&logoColor=white)](https://discord.gg/KYzsfKkYxX)
 
-**📖 Documentation — step-by-step guide with screenshots:** [aaqu.github.io/fromcubes-portal-react](https://aaqu.github.io/fromcubes-portal-react/) — install → import → edit JSX → live dashboard, on one example.
+**📖 Documentation — step-by-step guide with screenshots:** [aaqu.github.io/fromcubes-react](https://aaqu.github.io/fromcubes-react/) — install → import → edit JSX → live dashboard, on one example.
 
-[![Documentation walkthrough](https://aaqu.github.io/fromcubes-portal-react/img/docs-scroll.gif)](https://aaqu.github.io/fromcubes-portal-react/)
+[![Documentation walkthrough](https://aaqu.github.io/fromcubes-react/img/docs-scroll.gif)](https://aaqu.github.io/fromcubes-react/)
 
 > **⚠️ Alpha Module** — This project is in early development. Expect breaking changes. Test on a clean Node-RED instance.
 
@@ -306,7 +306,8 @@ behind a reverse proxy. Highlights:
   configured.
 - Token-bucket rate-limit (default 60 burst / 1 req/s steady) on every
   write endpoint, tunable via `RED.settings.portalReact.rateLimit`.
-- 1 MB JSON body cap, 100 MB asset-upload cap, 500 MB / 1000 files total
+- JSON bodies capped by Node-RED's own `apiMaxLength` (settings.js, default
+  5 MB), 100 MB asset-upload cap, 500 MB / 1000 files total
   assets quota, 1 MB WebSocket frame cap.
 - `x-portal-user-*` identity headers are trusted unconditionally — production
   deployments **must** terminate auth at a reverse proxy that strips inbound

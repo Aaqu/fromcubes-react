@@ -101,6 +101,28 @@ const packageInfo = require("../package.json");
 
 const CACHE_SCHEMA_VERSION = "portal-react-cache-v2";
 
+/**
+ * Borrow the express that the running Node-RED ships with instead of
+ * declaring our own copy. We only need its static/json/raw middleware; the
+ * server itself is RED.httpAdmin/RED.httpNode. This package lives in
+ * `<userDir>/node_modules`, from where a plain require cannot see Node-RED's
+ * install directory, so resolve from the entry script that started the
+ * process (node-red's red.js). Embedded Node-RED (an app that requires
+ * node-red itself) falls back to a plain require — such an app has express.
+ * @returns {typeof import("express")}
+ */
+function loadExpress() {
+  const entry = require.main && require.main.filename;
+  if (entry) {
+    try {
+      return require("module").createRequire(entry)("express");
+    } catch (_) {
+      // not launched through node-red's own entry script
+    }
+  }
+  return require("express");
+}
+
 module.exports = function (RED) {
   // ── Admin root prefix (for correct URLs when httpAdminRoot is set) ──
   const adminRoot = (RED.settings.httpAdminRoot || "/").replace(/\/$/, "");
@@ -216,12 +238,6 @@ module.exports = function (RED) {
     }, 5 * 60_000);
     RED.settings.portalReactRateBucketPruneIv.unref?.();
   }
-
-  // ── Standard JSON parser with 1 MB limit ──────────────────────
-  // Applied per-route on POSTs that read req.body. 1 MB easily fits even
-  // large component files, and protects the registry endpoints from being
-  // used as a denial-of-service vector.
-  const JSON_BODY_LIMIT = "1mb";
 
   // ── Status text helper ───────────────────────────────────────
   // Node-RED appearance docs recommend status text "around 20 characters".
@@ -1680,7 +1696,7 @@ module.exports = function (RED) {
     dynamicModuleList: "libs",
   });
 
-  const express = require("express");
+  const express = loadExpress();
   const { registerAdminApi } = require("./lib/admin-api");
   registerAdminApi(RED, {
     express,
@@ -1688,7 +1704,6 @@ module.exports = function (RED) {
     permWrite: PERM_WRITE,
     csrfGuard,
     rateLimit,
-    jsonBodyLimit: JSON_BODY_LIMIT,
     userDir,
     pageState,
     registry,

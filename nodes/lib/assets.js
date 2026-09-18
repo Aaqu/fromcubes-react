@@ -182,7 +182,6 @@ function authMiddleware(RED, scope) {
  *                                     same protections apply to assets POSTs.
  * @param {Function} [opts.csrfGuard]
  * @param {Function} [opts.rateLimit]
- * @param {string}   [opts.jsonLimit]  Body-parser limit (default "1mb").
  * @returns {void}
  *
  * @fires RED.log#info on first-time directory creation
@@ -199,7 +198,13 @@ function registerAssets(RED, express, assetsDir, opts) {
   const passthrough = (_req, _res, next) => next();
   const csrfGuard = (opts && opts.csrfGuard) || passthrough;
   const rateLimit = (opts && opts.rateLimit) || passthrough;
-  const jsonLimit = (opts && opts.jsonLimit) || "1mb";
+  // Node-RED's admin app already parses JSON on every route, capped by
+  // `apiMaxLength` in settings.js (default 5mb) — that is the limit the user
+  // configures, so we keep it rather than inventing our own. A parser of ours
+  // would be a no-op anyway: body-parser skips a request already parsed.
+  // Parse only when nothing upstream did (test harness, embedded Node-RED).
+  const parseJson = express.json({ limit: (RED.settings && RED.settings.apiMaxLength) || "5mb" });
+  const jsonBody = (req, res, next) => (req._body ? next() : parseJson(req, res, next));
 
   // Security middleware for public serving
   RED.httpNode.use(
@@ -230,7 +235,7 @@ function registerAssets(RED, express, assetsDir, opts) {
   });
 
   // Create directory
-  RED.httpAdmin.post("/portal-react/assets/mkdir", WRITE, csrfGuard, rateLimit, express.json({ limit: jsonLimit }), (req, res) => {
+  RED.httpAdmin.post("/portal-react/assets/mkdir", WRITE, csrfGuard, rateLimit, jsonBody, (req, res) => {
     const target = safePath(req.body && req.body.path, assetsDir);
     if (!target) return res.status(400).json({ error: "invalid path" });
     try {
@@ -243,7 +248,7 @@ function registerAssets(RED, express, assetsDir, opts) {
   });
 
   // Move / rename
-  RED.httpAdmin.post("/portal-react/assets/move", WRITE, csrfGuard, rateLimit, express.json({ limit: jsonLimit }), (req, res) => {
+  RED.httpAdmin.post("/portal-react/assets/move", WRITE, csrfGuard, rateLimit, jsonBody, (req, res) => {
     const from = safePath(req.body && req.body.from, assetsDir);
     const to = safePath(req.body && req.body.to, assetsDir);
     if (!from || !to) return res.status(400).json({ error: "invalid path" });

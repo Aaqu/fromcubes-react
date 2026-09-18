@@ -632,7 +632,7 @@ reverse proxy.
 - **Rate limiting** — token bucket keyed by `req.ip`, default 60 burst / 1 req/s
   steady, tunable via `RED.settings.portalReact.rateLimit = { tokens, windowMs }`.
   Idle buckets are pruned every 5 min.
-- **Payload caps** — 1 MB JSON body, 100 MB asset upload, 1 MB WebSocket frame.
+- **Payload caps** — JSON body = Node-RED's `apiMaxLength` (default 5 MB), 100 MB asset upload, 1 MB WebSocket frame.
 - **Identity injection is server-side** — `msg._client` is rebuilt from socket
   state on every inbound frame; the browser cannot forge it. `x-portal-user-*`
   headers are trusted **unconditionally**, so production must terminate auth at a
@@ -682,7 +682,7 @@ To run the plugin against a real Node-RED:
 
 ```bash
 cd ~/.node-red
-npm install /path/to/fromcubes-portal-react
+npm install /path/to/fromcubes-react
 npm start
 ```
 
