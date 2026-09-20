@@ -128,17 +128,17 @@ const DEFAULT_HINT = "Fix the component code in Node-RED and deploy again.";
  * @param {string}  cssHash        Tailwind CSS bundle hash, or "" to skip the link tag.
  * @param {?Object} user           PortalUser object or null when Portal Auth is off.
  * @param {boolean} showWsStatus   Render the `#__cs` connection badge.
- * @param {string}  adminRoot      `RED.settings.httpAdminRoot` (no trailing slash).
+ * @param {string}  nodeRoot       `RED.settings.httpNodeRoot` (no trailing slash).
  * @returns {string}               Complete HTML5 document.
  */
-function buildPage(title, transpiledJs, wsPath, customHead, cssHash, user, showWsStatus, adminRoot) {
+function buildPage(title, transpiledJs, wsPath, customHead, cssHash, user, showWsStatus, nodeRoot) {
   return `<!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width,initial-scale=1.0">
       <title>${esc(title)}</title>
-      ${cssHash ? `<link rel="stylesheet" href="${adminRoot}/portal-react/css/${cssHash}.css">` : ""}
+      ${cssHash ? `<link rel="stylesheet" href="${nodeRoot}/fromcubes/css/${cssHash}.css">` : ""}
       ${escScript(customHead)}
       <style>${ERROR_OVERLAY_CSS}</style>
       ${showWsStatus ? `<style>

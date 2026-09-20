@@ -106,7 +106,6 @@ function registerAdminApi(RED, deps) {
   }
 
   RED.httpNode.get("/fromcubes/css/:hash.css", serveCss);
-  RED.httpAdmin.get("/portal-react/css/:hash.css", serveCss);
 
   const { registerAssets } = require("./assets");
   registerAssets(RED, express, path.join(userDir, "fromcubes", "public"), {

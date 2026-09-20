@@ -10,9 +10,11 @@ const { registerAdminApi } = require("../nodes/lib/admin-api");
 
 let tmpDir;
 let app;
+let pageState;
 
 beforeEach(() => {
   tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "editor-test-")));
+  pageState = {};
   const mockRED = {
     httpAdmin: express.Router(),
     httpNode: express.Router(),
@@ -26,12 +28,13 @@ beforeEach(() => {
     csrfGuard: (_req, _res, next) => next(),
     rateLimit: (_req, _res, next) => next(),
     userDir: tmpDir,
-    pageState: {},
+    pageState,
     registry: {},
     utilities: {},
     extractUtilitySymbols: () => new Set(),
   });
   app = express();
+  app.use(mockRED.httpNode);
   app.use(mockRED.httpAdmin);
 });
 
@@ -40,6 +43,24 @@ afterEach(() => {
 });
 
 // ── Static editor assets ──────────────────────────────────────
+
+test("serves generated portal CSS only from the public runtime route", async () => {
+  pageState["/fromcubes/demo"] = {
+    cssHash: "abc123",
+    css: ".text-red-500{color:red}",
+  };
+
+  const publicCss = await request(app).get("/fromcubes/css/abc123.css");
+  expect(publicCss.status).toBe(200);
+  expect(publicCss.headers["content-type"]).toMatch(/text\/css/);
+  expect(publicCss.headers["cache-control"]).toBe(
+    "public, max-age=31536000, immutable",
+  );
+  expect(publicCss.text).toBe(".text-red-500{color:red}");
+
+  const adminCss = await request(app).get("/portal-react/css/abc123.css");
+  expect(adminCss.status).toBe(404);
+});
 
 test("serves the workspace plugin script", async () => {
   const res = await request(app).get("/portal-react/editor/workspace.js");
