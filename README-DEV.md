@@ -575,14 +575,12 @@ CSS is generated server-side, never in the browser:
    `Cache-Control`.
 
 **Serving route.** The compiled JS is inlined into the HTML; the CSS is **not**.
-The page links it via `<link href="${adminRoot}/portal-react/css/<hash>.css">`.
-Two routes serve identical content from `pageState[*].css` by hash:
+The page links it via
+`<link href="${nodeRoot}/fromcubes/css/<hash>.css">`, where `nodeRoot` is the
+configured `httpNodeRoot`. `GET /fromcubes/css/:hash.css` is mounted only on
+`RED.httpNode`; portal pages never depend on the editor/admin route.
 
-- `GET /portal-react/css/:hash.css` on `RED.httpAdmin` — the URL the page actually
-  emits (works under a custom `httpAdminRoot`).
-- `GET /fromcubes/css/:hash.css` on `RED.httpNode` — public equivalent.
-
-Both constrain `:hash` to `^[a-f0-9]{1,64}$` so a hostile client can't probe
+The route constrains `:hash` to `^[a-f0-9]{1,64}$` so a hostile client can't probe
 arbitrary `pageState` keys. A CSS-generation failure is non-fatal: the page still
 loads (unstyled), node status shows a yellow `css-fail` ring, and the flag clears
 on the next successful build.

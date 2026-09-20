@@ -21,7 +21,7 @@ function withNoStore(res) {
  * @param {Object<string, Object>} opts.pageState
  * @param {string} opts.wsPath
  * @param {string} opts.pageTitle
- * @param {string} opts.adminRoot
+ * @param {string} opts.nodeRoot
  * @param {Function} opts.buildPage
  * @param {Function} opts.buildErrorPage
  * @param {Function} opts.extractPortalUser
@@ -33,7 +33,7 @@ function createPortalPageHandler(opts) {
     pageState,
     wsPath,
     pageTitle,
-    adminRoot,
+    nodeRoot,
     buildPage,
     buildErrorPage,
     extractPortalUser,
@@ -68,7 +68,7 @@ function createPortalPageHandler(opts) {
                 state.lastGood.cssHash,
                 user,
                 state.showWsStatus,
-                adminRoot,
+                nodeRoot,
               ),
             );
           return;
@@ -111,7 +111,7 @@ function createPortalPageHandler(opts) {
             cssHash,
             user,
             state.showWsStatus,
-            adminRoot,
+            nodeRoot,
           ),
         );
     } catch (e) {

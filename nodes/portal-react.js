@@ -124,8 +124,7 @@ function loadExpress() {
 }
 
 module.exports = function (RED) {
-  // ── Admin root prefix (for correct URLs when httpAdminRoot is set) ──
-  const adminRoot = (RED.settings.httpAdminRoot || "/").replace(/\/$/, "");
+  // ── Runtime root prefix (for correct public URLs when httpNodeRoot is set) ──
   const nodeRoot = (RED.settings.httpNodeRoot || "/").replace(/\/$/, "");
 
   // ── Admin auth gate (Node-RED 4.x adminAuth) ─────────────────
@@ -1332,7 +1331,7 @@ module.exports = function (RED) {
             pageState,
             wsPath,
             pageTitle,
-            adminRoot,
+            nodeRoot,
             buildPage,
             buildErrorPage,
             extractPortalUser,
